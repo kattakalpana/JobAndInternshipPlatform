@@ -15,10 +15,10 @@ const PORT = 4000;
 // PostgreSQL Database Connection
 const pool = new Pool({
     user: "postgres",
-    host: "localhost",
-    database: "login_system",
-    password: "8019", // Replace with your actual password
-    port: 5432,
+    host: "",
+    database: "",
+    password: "", // Replace with your actual password
+    port: ,
 });
 
 // Middleware
