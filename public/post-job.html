@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post a Job</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Post a New Job</h1>
+        <button id="back-btn" class="btn" style="background-color: gray;">Back</button>
+
+        <form id="job-form">
+            <div class="form-group">
+                <label for="title">Job Title</label>
+                <input type="text" id="title" name="title" placeholder="Enter job title" required>
+            </div>
+
+            <div class="form-group">
+                <label for="required_skills">Required required_skills</label>
+                <input type="text" id="required_skills" name="required_skills" placeholder="Enter required skills (comma-separated)" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Job Description</label>
+                <textarea id="description" name="description" placeholder="Enter job description" required></textarea>
+            </div>
+
+            <button type="submit" class="btn">Submit Job</button>
+        </form>
+
+        <p id="success-message" class="hidden" style="color: green;">Job posted successfully!</p>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Handle form submission
+            document.getElementById("job-form").addEventListener("submit", async function (event) {
+                event.preventDefault();
+                
+                const title = document.getElementById("title").value;
+                const required_skills = document.getElementById("required_skills").value;
+                const description = document.getElementById("description").value;
+
+                const jobData = {
+                    title: title,
+                    required_skills: required_skills,
+                    description: description
+                };
+
+                try {
+                    const response = await fetch("/post-job", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(jobData)
+                    });
+
+                    if (response.ok) {
+                        document.getElementById("success-message").classList.remove("hidden");
+                        document.getElementById("job-form").reset();
+                    } else {
+                        alert("Error posting job. Please try again.");
+                    }
+                } catch (error) {
+                    alert("An unexpected error occurred.");
+                    console.error(error);
+                }
+            });
+
+            // Back button functionality
+            document.getElementById("back-btn").addEventListener("click", function () {
+                window.location.href = "recruiter.html";
+            });
+        });
+    </script>
+</body>
+</html>

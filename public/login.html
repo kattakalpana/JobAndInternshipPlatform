@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Signup</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        function showSignup() {
+            document.getElementById('login-container').classList.add('hidden');
+            document.getElementById('signup-container').classList.remove('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('signup-container').classList.add('hidden');
+            document.getElementById('login-container').classList.remove('hidden');
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const role = document.getElementById("role").value;
+
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password, role })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                if (role === "recruiter") {
+                    sessionStorage.setItem("recruiter", "true");
+                    window.location.href = "/recruiter";
+                } else {
+                    sessionStorage.setItem("candidate", "true");
+                    window.location.href = "/profile";
+                }
+            } else {
+                alert("Invalid email or password. Please try again.");
+            }
+        }
+
+        async function handleSignup(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const email = document.querySelector('#signup-container input[name="email"]').value;
+            const password = document.querySelector('#signup-container input[name="password"]').value;
+            const repassword = document.getElementById('repassword').value;
+
+            if (password !== repassword) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            const response = await fetch('/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password })
+            });
+
+            if (response.ok) {
+                alert("Signup successful! You can now log in.");
+                showLogin();
+            } else {
+                alert("Error signing up. Email may already be in use.");
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="login-container" class="container">
+        <h1>Login</h1>
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <div class="form-group">
+                <label for="role">Login as:</label>
+                <select id="role" name="role">
+                    <option value="candidate">Candidate</option>
+                    <option value="recruiter">Recruiter</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <div class="footer">
+            <p>Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
+        </div>
+    </div>
+
+    <div id="signup-container" class="container hidden">
+        <h1>Sign Up</h1>
+        <form onsubmit="handleSignup(event)">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" placeholder="Enter your name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <div class="form-group">
+                <label for="repassword">Re-enter Password</label>
+                <input type="password" id="repassword" name="repassword" placeholder="Re-enter your password" required>
+            </div>
+            <button type="submit" class="btn">Sign Up</button>
+        </form>
+        <div class="footer">
+            <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+        </div>
+    </div>
+</body>
+</html>

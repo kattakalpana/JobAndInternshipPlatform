@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="popup" class="popup">
+        <p>Fill your details using your resume or enter manually.</p>
+        <button onclick="closePopup()">OK</button>
+    </div>
+
+    <div class="container">
+        <h1>Complete Your Profile</h1>
+        <button id="logout-btn" class="btn" style="float: right; background-color: red;">Logout</button>
+        
+        <form id="profile-form" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" placeholder="Enter your name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="skills">Skill Set</label>
+                <select id="skills" name="skills[]" multiple required style="width:100%;">
+                    <option value="C">C</option>
+                    <option value="C++">C++</option>
+                    <option value="Python">Python</option>
+                    <option value="Java">Java</option>
+                    <option value="JavaScript">JavaScript</option>
+                    <option value="DSA">DSA</option>
+                    <option value="SQL">SQL</option>
+                    <option value="Machine Learning">Machine Learning</option>
+                    <option value="Node.js">Node.js</option>
+                    <option value="PostgreSQL">PostgreSQL</option>
+                    <option value="Express">Express</option>
+                    <option value="React">React</option>
+                    <option value="HTML">HTML</option>
+                    <option value="CSS">CSS</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="jobPreference">Job Preference</label>
+                <select id="jobPreference" name="jobPreference[]" multiple required style="width:100%;">
+                    <option value="Frontend Developer">Frontend Developer</option>
+                    <option value="Backend Developer">Backend Developer</option>
+                    <option value="Full Stack Developer">Full Stack Developer</option>
+                    <option value="Data Scientist">Data Scientist</option>
+                    <option value="Machine Learning Engineer">Machine Learning Engineer</option>
+                    <option value="DevOps Engineer">DevOps Engineer</option>
+                    <option value="Software Developer">Software Developer</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="resume">Upload Resume</label>
+                <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx">
+                <button type="button" onclick="uploadResume()">Auto-Fill from Resume</button>
+            </div>
+
+            <button type="submit" class="btn">Submit</button>
+        </form>
+
+        <p id="success-message" class="hidden" style="color: green;">Profile submitted successfully!</p>
+
+        <div id="job-results" class="hidden">
+            <h2>Matching Jobs</h2>
+            <ul id="job-list"></ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            showPopup();
+
+            fetch("/check-session", { method: "GET", credentials: "include" })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.loggedIn) {
+                        window.location.href = "/";
+                    }
+                })
+                .catch(error => console.error("Session check failed:", error));
+
+            $("#skills, #jobPreference").select2({
+                placeholder: "Select options",
+                allowClear: true
+            });
+
+            document.getElementById("profile-form").addEventListener("submit", async (event) => {
+                event.preventDefault();
+                const form = event.target;
+                const formData = new FormData(form);
+
+                formData.set("skills", $("#skills").val().join(","));
+                formData.set("jobPreference", $("#jobPreference").val().join(","));
+
+                try {
+                    const response = await fetch("/profile", {
+                        method: "POST",
+                        body: formData,
+                        credentials: "include"
+                    });
+
+                    if (response.ok) {
+                        const jobs = await response.json();
+                        document.getElementById("success-message").classList.remove("hidden");
+                        
+                        if (jobs.length > 0) {
+                            document.getElementById("job-results").classList.remove("hidden");
+                            const jobList = document.getElementById("job-list");
+                            jobList.innerHTML = "";
+                            jobs.forEach(job => {
+                                const listItem = document.createElement("li");
+                                listItem.innerHTML = `<strong>${job.title}</strong>: ${job.description}`;
+                                jobList.appendChild(listItem);
+                            });
+                        } else {
+                            alert("No matching jobs found!");
+                        }
+                    } else {
+                        alert("Error submitting profile.");
+                    }
+                } catch (error) {
+                    alert("An unexpected error occurred.");
+                    console.error(error);
+                }
+            });
+
+            document.getElementById("logout-btn").addEventListener("click", () => {
+                fetch("/logout", { method: "GET", credentials: "include" })
+                    .then(response => response.json())
+                    .then(() => {
+                        window.location.href = "/";
+                    })
+                    .catch(error => console.error("Logout failed:", error));
+            });
+        });
+
+        function showPopup() {
+            document.getElementById("popup").style.display = "block";
+        }
+
+        function closePopup() {
+            document.getElementById("popup").style.display = "none";
+        }
+
+        async function uploadResume() {
+            const fileInput = document.getElementById("resume");
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please upload a resume file.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("resume", file);
+
+            const response = await fetch("/upload-resume", {
+                method: "POST",
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                document.getElementById("name").value = data.name || "";
+                $("#skills").val(data.skills ? data.skills.split(",") : []).trigger("change");
+                $("#jobPreference").val(data.jobPreference ? data.jobPreference.split(",") : []).trigger("change");
+            } else {
+                alert("Error processing resume.");
+            }
+        }
+    </script>
+</body>
+</html>

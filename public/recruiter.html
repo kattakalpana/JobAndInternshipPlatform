@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Recruiter Dashboard</h1>
+        <button id="logout-btn" class="btn" style="float: right; background-color: red;">Logout</button>
+        
+        <p>Welcome, Recruiter! Manage job postings, review candidates, and find the best talent.</p>
+
+        <button id="post-job-btn" class="btn">Post a Job</button>
+        <button id="view-candidates-btn" class="btn">View Candidates</button>
+
+        <div id="message" class="hidden" style="color: blue; font-weight: bold; margin-top: 10px;"></div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const recruiter = sessionStorage.getItem("recruiter");
+            if (!recruiter) {
+                window.location.href = "/"; 
+            }
+
+            // Correct way to attach event listener to "Post a Job" button
+            document.getElementById("post-job-btn").addEventListener("click", function () {
+                window.location.href = "post-job.html"; // Ensure file is correctly named
+            });
+            document.getElementById("view-candidates-btn").addEventListener("click", function () {
+                window.location.href = "view-candidates.html"; // Redirect to candidates page
+            });
+
+            document.getElementById("logout-btn").addEventListener("click", () => {
+                sessionStorage.removeItem("recruiter");
+                window.location.href = "/";
+            });
+
+        });
+    </script>
+</body>
+</html>
